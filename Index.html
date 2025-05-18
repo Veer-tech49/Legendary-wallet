@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legend Wallet</title>
+  <style>
+    body {
+      background: #000;
+      color: #f0c419;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 900;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input, select, button {
+      padding: 8px;
+      margin-bottom: 15px;
+      width: 100%;
+      max-width: 300px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #f0c419;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #d1a10e;
+    }
+    table {
+      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #f0c419;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #f0c419;
+      color: #000;
+    }
+    tfoot td {
+      font-weight: 900;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💸 Legend Wallet</h1>
+
+  <label for="month">Select Month:</label>
+  <select id="month">
+    <option value="" disabled selected>Select month</option>
+    <option>May</option>
+    <option>June</option>
+    <option>July</option>
+    <option>August</option>
+    <option>September</option>
+    <option>October</option>
+    <option>November</option>
+    <option>December</option>
+    <option>January</option>
+  </select>
+
+  <label for="income">Income (₹):</label>
+  <input type="number" id="income" placeholder="Enter income" />
+
+  <label for="savings">Savings (₹):</label>
+  <input type="number" id="savings" placeholder="Enter savings" />
+
+  <button id="addEntry">Add Entry</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Income (₹)</th>
+        <th>Savings (₹)</th>
+        <th>Spending (₹)</th>
+      </tr>
+    </thead>
+    <tbody id="dataBody"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">Total Savings</td>
+        <td id="totalSavings" colspan="2">₹0</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script>
+    const monthSelect = document.getElementById('month');
+    const incomeInput = document.getElementById('income');
+    const savingsInput = document.getElementById('savings');
+    const addBtn = document.getElementById('addEntry');
+    const dataBody = document.getElementById('dataBody');
+    const totalSavingsElem = document.getElementById('totalSavings');
+
+    let data = JSON.parse(localStorage.getItem('legendWalletData')) || [];
+
+    function renderTable() {
+      dataBody.innerHTML = '';
+      let totalSavings = 0;
+      data.forEach(entry => {
+        const spending = entry.income - entry.savings;
+        totalSavings += entry.savings;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.month}</td>
+          <td>₹${entry.income}</td>
+          <td>₹${entry.savings}</td>
+          <td>₹${spending}</td>
+        `;
+        dataBody.appendChild(row);
+      });
+      totalSavingsElem.textContent = `₹${totalSavings}`;
+    }
+
+    addBtn.addEventListener('click', () => {
+      const month = monthSelect.value;
+      const income = Number(incomeInput.value);
+      const savings = Number(savingsInput.value);
+
+      if (!month) {
+        alert('Select a month!');
+        return;
+      }
+      if (income <= 0 || savings < 0) {
+        alert('Enter valid income and savings!');
+        return;
+      }
+      if (savings > income) {
+        alert('Savings cannot be more than income!');
+        return;
+      }
+
+      // If month already exists, update it
+      const existingIndex = data.findIndex(d => d.month === month);
+      if (existingIndex !== -1) {
+        data[existingIndex] = { month, income, savings };
+      } else {
+        data.push({ month, income, savings });
+      }
+
+      localStorage.setItem('legendWalletData', JSON.stringify(data));
+      renderTable();
+
+      // Clear inputs
+      incomeInput.value = '';
+      savingsInput.value = '';
+      monthSelect.value = '';
+    });
+
+    // Initial render
+    renderTable();
+  </script>
+
+</body>
+</html>
